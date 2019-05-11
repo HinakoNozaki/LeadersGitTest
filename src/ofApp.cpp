@@ -96,7 +96,7 @@ vector<Drawer*> drawers;
 //--------------------------------------------------------------
 void ofApp::setup(){
     //ofBackground(0,0,0);
-    ofSetWindowShape(640, 480);
+    //ofSetWindowShape(640, 480);
     ofSetFrameRate(60);
     
     ofSetVerticalSync(true);
