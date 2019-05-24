@@ -106,9 +106,9 @@ void ofApp::setup(){
     // setup bvh
     bvh[0].load("bvhfiles/kashiyuka.bvh");
     bvh[1].load("bvhfiles/nocchi.bvh");
-    //bvh[2].load("bvhfiles/aachan.bvh");
+    bvh[2].load("bvhfiles/aachan.bvh");
     
-    for (int i = 0; i < 2; i++)    {
+    for (int i = 0; i < 3; i++)    {
         bvh[i].play();
     }
     
@@ -129,7 +129,7 @@ void ofApp::setup(){
     //maskedImage.allocate(640, 480, OF_IMAGE_COLOR_ALPHA);
     //scenery.load("壁紙02.jpg");
     // setup tracker and drawer
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
     {
         ofxBvh &b = bvh[i];
         Drawer *d = new Drawer;
@@ -155,16 +155,23 @@ void ofApp::setup(){
     camera.setPosition(300, 30, 300);
     //camera.disableMouseInput();
     ofPopMatrix();
+    
+    ofVec3f v0(0,0,0);
+    A = v0;
+    B = v0;
+    C = v0;
+    D = v0;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    ofSetWindowTitle(to_string(ofGetFrameRate()));
     kinect.update();
     
     float t = (track.getPosition() * 64.28);
     t = t / bvh[0].getDuration();
     
-    for (int i = 0; i < 2; i++)    {
+    for (int i = 0; i < 3; i++)    {
         bvh[i].setPosition(t);
         bvh[i].update();
     }
@@ -226,7 +233,7 @@ void ofApp::draw(){
         //draw led pipes
         ofSetLineWidth(3);
         for (int i = 0; i < 3600; i = i + 2) {
-            ofSetColor(ofColor::fromHsb(255*pow(sin((float)ofGetElapsedTimeMillis()/1000+((float)i*PI/600)),2),255,255));
+            ofSetColor(ofColor::fromHsb(hue*pow(sin((float)ofGetElapsedTimeMillis()/1000+((float)i*PI/600)),2),sat,bri));
             ofDrawLine(cos((float)i*PI/180)*300, sin((float)i*PI/180)*300, -(i/3) ,
                        cos((float)i*PI/180)*300, sin((float)i*PI/180)*300, -(i/3)-30 );
         }
@@ -241,10 +248,19 @@ void ofApp::draw(){
             //trackers[i]->draw();
         }
         
-        for (int i = 0; i < drawers.size(); i++){
+        for (int i = 0; i < drawers.size()-1; i++){
             drawers[i]->draw();
         }
-        
+        ofVec3f a2(drawers[2]->joints.at(17)->getPosition());
+        ofVec3f b2(drawers[2]->joints.at(15)->getPosition());
+        ofVec3f c2(drawers[2]->joints.at(12)->getPosition());
+        ofVec3f d2(drawers[2]->joints.at(10)->getPosition());
+        A2=a2;
+        B2=b2;
+        C2=c2;
+        D2=d2;
+        v3 = A2-B2;
+        v4 = C2-D2;
     }
     
     ofPopMatrix();
@@ -252,6 +268,7 @@ void ofApp::draw(){
     
     //ofBackground(0);
     ofSetColor(255);
+    ofFill();
 //    ofSetColor(155, 155, 155);
 //    kinect.drawDepth(0, 0, 640, 480);
 //    kinect.drawImage(0, 0, 640, 480);
@@ -265,6 +282,7 @@ void ofApp::draw(){
 //    kinect.drawDepth(0, 0, 640, 480);
     //kinect.drawSkeletons(0, 0, 640, 480);
     
+    
     if(kinect.getNumTrackedUsers() > 0){
         ofxOpenNIUser user = kinect.getTrackedUser(0);
         
@@ -274,24 +292,66 @@ void ofApp::draw(){
             if(joint.isFound()){
                 float x = joint.getProjectivePosition().x;
                 float y = joint.getProjectivePosition().y;
+                float z = joint.getProjectivePosition().z;
                 switch ((enum Joint) i) {
                     case JOINT_HEAD:
+                    {
+                        ofSetColor(255, 0, 0);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 20);
+                        break;
+                    }
                     case JOINT_LEFT_HAND:
+                    {
+                        ofVec3f a1(x,y,z);
+                        A1 = a1;
+                        //cout << a1 << endl;
+                        ofSetColor(255, 0, 0);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 11);
+                        break;
+                    }
                     case JOINT_RIGHT_HAND:
+                    {
+                        ofVec3f c1(x,y,z);
+                        C1 = c1;
+                        ofSetColor(255, 0, 0);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 11);
+                        break;
+                    }
                     case JOINT_LEFT_FOOT:
                     case JOINT_RIGHT_FOOT:
                         ofSetColor(255, 0, 0);
-                        ofDrawCircle(x, y, 20);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 11);
                         break;
                         
-                    default:
+                    case JOINT_LEFT_ELBOW:
+                    {
+                        ofVec3f b1(x,y,z);
+                        B1 = b1;
+                        //cout << B1 << endl;
                         ofSetColor(255);
-                        ofDrawCircle(x, y, 10);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 3);
                         break;
+                    }
+                    case JOINT_RIGHT_ELBOW:
+                    {
+                        ofVec3f d1(x,y,z);
+                        D1 = d1;
+                        ofSetColor(255);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 3);
+                        break;
+                    }
+                        
+                    default:
+                    {
+                        ofSetColor(255);
+                        ofDrawCircle(x/5*4+450, y/2+250, z/18, 3);
+                        break;
+                    }
                 }
                 
             }
         }
+       
         ofSetLineWidth(2);
         ofSetColor(100, 200, 255);
         for(int i=0; i<user.getNumLimbs(); i++){
@@ -299,14 +359,102 @@ void ofApp::draw(){
             if(limb.isFound()){
                 float sX = limb.getStartJoint().getProjectivePosition().x;
                 float sY = limb.getStartJoint().getProjectivePosition().y;
+                float sZ = limb.getStartJoint().getProjectivePosition().z;
                 float eX = limb.getEndJoint().getProjectivePosition().x;
                 float eY = limb.getEndJoint().getProjectivePosition().y;
-                ofDrawLine(sX, sY, eX, eY);
+                float eZ = limb.getEndJoint().getProjectivePosition().z;
+                ofDrawLine(sX/5*4+450, sY/2+250, sZ/18, eX/5*4+450, eY/2+250, eZ/18);
             }
         }
     }
+    v1 = A1-B1;
+    v2 = C1-D1;
+    //cout << A1 << endl;
+    //cout << B1 << endl;
+    //cout << C1 << endl;
+    //cout << D1 << endl;
+    //cout << A << endl;
+    //cout << B << endl;
+    //cout << C << endl;
+    //cout << D << endl;
+    ofVec3f vx(cos(PI/4),0,cos(PI/4));
+    ofVec3f vy(0,-1,0);
+    ofVec3f vz(-cos(PI/4),0,cos(PI/4));
+    v3 = v3.x*vx + v3.y*vy + v3.z*vz;
+    v4 = v4.x*vx + v4.y*vy + v4.z*vz;
+    //cout << v3 << endl;
+    //cout << v4  << endl;
+    v1.normalize();
+    v2.normalize();
+    v3.normalize();
+    v4.normalize();
+    ofVec3f v0(0,0,0);
+    //cout << v1 << endl;
+    //cout << v2 << endl;
+    //cout << v3 << endl;
+    //cout << v4 << endl;
+    if(v1==v0 && v2==v0){
+        hue=0;
+        sat=0;
+        bri=0;
+    }
+    else if(ofGetFrameNum()%80==0){
+    float dot1 = v1.dot(v3);
+    float dot2 = v2.dot(v4);
+    float tot = dot1 + dot2;
+    //cout << dot1 << endl;
+    //cout << dot2 << endl;
+
+        if(dot1 < -0.5){
+            hue = 0;
+        }else{
+            hue = 55 + dot1 * 200;
+        }
+        if(dot2 < -0.5){
+            sat = 0;
+        }else{
+            sat = 55 + dot2 * 200;
+        }
+        if(tot < -0.5){
+            bri = 0;
+        }else{
+            bri = 55 + tot * 100;
+        }
+        //cout << v1 << endl;
+        //cout << v2 << endl;
+        
+        if(A==A1 && B==B1 && C==C1 && D==D1){
+            hue=0;
+            sat=0;
+            bri=0;
+        }
+        A = A1;
+        B = B1;
+        C = C1;
+        D = D1;
+    }
+    //cout << hue << endl;
+    //cout << sat << endl;
+    //cout << bri << endl;
+    //cout << A << endl;
+    //cout << B << endl;
+    //cout << C << endl;
+    //cout << D << endl;
+   
     //scenery.draw(0, 0, 640, 480);
     //maskedImage.draw(0, 0, 640, 480);
+    /*
+    float x1=100;
+    float y1=100;
+    ofVec2f v1(x1,y1);
+    V=v1;
+    ofVec2f v2(200,100);
+    ofVec2f v3=V+v2;
+    cout << v3 << endl;
+    
+    if(ofGetFrameNum()%100==0){
+        stage_mode+=1;
+    }*/
 }
 
 //--------------------------------------------------------------
