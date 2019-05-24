@@ -304,7 +304,6 @@ void ofApp::draw(){
                     {
                         ofVec3f a1(x,y,z);
                         A1 = a1;
-                        //cout << a1 << endl;
                         ofSetColor(255, 0, 0);
                         ofDrawCircle(x/5*4+450, y/2+250, z/18, 11);
                         break;
